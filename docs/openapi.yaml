@@ -1,0 +1,225 @@
+openapi: 3.0.3
+info:
+  description: API documentation for Faynman API
+  title: Faynman API
+  version: 0.0.1
+servers:
+- description: Development server for Faynman API
+  url: https://api.faynman.com
+- description: Local server for Faynman API
+  url: http://localhost:3000
+tags:
+- description: Authentication API
+  name: Auth
+- description: Books API
+  name: Books
+paths:
+  /v1/auth/refresh:
+    post:
+      description: Refresh the authentication token, the bearer token must be set
+        to the refresh token
+      operationId: authRefreshToken
+      responses:
+        "200":
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/DomainAuthTokenDto'
+          description: OK
+      security:
+      - bearerAuth: []
+      summary: Refresh auth token
+      tags:
+      - Auth
+  /v1/auth/token:
+    post:
+      description: Retrieve the authentication token
+      operationId: authGetToken
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/DomainAuthTokenBody'
+      responses:
+        "200":
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/DomainAuthTokenDto'
+          description: OK
+      summary: Retrieve auth token
+      tags:
+      - Auth
+  /v1/books:
+    get:
+      description: Retrieve list of books
+      operationId: booksList
+      parameters:
+      - in: query
+        name: offset
+        required: true
+        schema:
+          minimum: 0
+          type: integer
+      - in: query
+        name: limit
+        required: true
+        schema:
+          minimum: 0
+          type: integer
+      - in: query
+        name: type
+        schema:
+          default: short
+          enum:
+          - short
+          - long
+          type: string
+      - in: query
+        name: search
+        schema:
+          type: string
+      - in: query
+        name: topics
+        schema:
+          type: string
+      responses:
+        "200":
+          content:
+            application/json:
+              schema:
+                items:
+                  $ref: '#/components/schemas/DomainBookResponse'
+                type: array
+          description: OK
+      security:
+      - bearerAuth: []
+      summary: Retrieve list of books
+      tags:
+      - Books
+  /v1/books/{bookId}:
+    get:
+      description: Retrieve details of a book by its UUID
+      operationId: bookDetailsGet
+      parameters:
+      - in: path
+        name: bookId
+        required: true
+        schema:
+          pattern: ^[0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[0-9a-fA-F]{4}-[0-9a-fA-F]{4}-[0-9a-fA-F]{12}$
+          type: string
+      responses:
+        "200":
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/DomainBookResponse'
+          description: OK
+      security:
+      - bearerAuth: []
+      summary: Retrieve book details by UUID
+      tags:
+      - Books
+components:
+  schemas:
+    DomainAuthTokenBody:
+      properties:
+        data:
+          $ref: '#/components/schemas/DomainAuthTokenData'
+        device:
+          $ref: '#/components/schemas/DomainAuthTokenDevice'
+        provider:
+          enum:
+          - apple
+          - google
+          type: string
+        token:
+          type: string
+      type: object
+    DomainAuthTokenData:
+      properties:
+        family_name:
+          type: string
+        given_name:
+          type: string
+      type: object
+    DomainAuthTokenDevice:
+      properties:
+        id:
+          type: string
+        token:
+          type: string
+      type: object
+    DomainAuthTokenDto:
+      properties:
+        access_token:
+          type: string
+        access_token_expires_at:
+          format: date-time
+          type: string
+        refresh_token:
+          type: string
+      type: object
+    DomainBookPickPreviewResponse:
+      properties:
+        content:
+          type: string
+        guid:
+          $ref: '#/components/schemas/UuidUUID'
+      type: object
+    DomainBookPickResponse:
+      properties:
+        content:
+          type: string
+        guid:
+          $ref: '#/components/schemas/UuidUUID'
+        index:
+          minimum: 0
+          type: integer
+      type: object
+    DomainBookResponse:
+      properties:
+        author:
+          type: string
+        createdAt:
+          format: date-time
+          type: string
+        guid:
+          $ref: '#/components/schemas/UuidUUID'
+        picks:
+          items:
+            $ref: '#/components/schemas/DomainBookPickResponse'
+          nullable: true
+          type: array
+        picksCount:
+          type: integer
+        preview:
+          $ref: '#/components/schemas/DomainBookPickPreviewResponse'
+        title:
+          type: string
+        topics:
+          items:
+            $ref: '#/components/schemas/DomainTopic'
+          nullable: true
+          type: array
+        updatedAt:
+          format: date-time
+          type: string
+      type: object
+    DomainTopic:
+      properties:
+        color:
+          type: string
+        topic:
+          type: string
+      type: object
+    UuidUUID:
+      example: 248df4b7-aa70-47b8-a036-33ac447e668d
+      format: uuid
+      type: string
+  securitySchemes:
+    bearerAuth:
+      bearerFormat: JWT
+      description: Bearer
+      scheme: bearer
+      type: http

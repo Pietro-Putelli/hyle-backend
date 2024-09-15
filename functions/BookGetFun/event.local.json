@@ -1,0 +1,6 @@
+{
+  "httpMethod": "GET",
+  "pathParameters": {
+    "bookId": "5707f96f-c18b-4010-b680-f18a8740c47d"
+  }
+}

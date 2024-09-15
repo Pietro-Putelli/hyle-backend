@@ -1,0 +1,78 @@
+Table user_providers {
+  id integer [primary key]
+  guid uuid
+  name varchar
+  jwks varchar
+  created_at timestamp
+}
+
+Table users {
+  id integer [primary key]
+  guid uuid unique
+  external_id varchar unique
+  email varchar
+  name varchar
+  surname varchar
+  provider_id integer
+  settings jsonb
+  created_at timestamp
+  updated_at timestamp
+}
+
+Table topics {
+  id integer [primary key]
+  guid uuid unique
+  name varchar
+  created_at timestamp
+}
+
+Table book_topics {
+  book_id integer [primary key]
+  topic_id integer [primary key]
+  created_at timestamp
+}
+
+Table books {
+  id integer [primary key]
+  guid uuid unique
+  title varchar
+  author varchar
+  user_id integer
+  created_at timestamp
+  updated_at timestamp
+}
+
+Enum keyword_types {
+  ANNOTATION
+  TRANSLATION
+  KEYWORD
+}
+
+Table keywords {
+  id integer [primary key]
+  type keyword_types
+  title varchar
+  content varchar
+}
+
+Table pick_keywords {
+  pick_id integer [primary key]
+  keyword_id integer [primary key]
+  created_at timestamp
+}
+
+Table picks {
+  id integer [primary key]
+  guid uuid unique
+  book_id integer
+  index integer
+  content varchar
+}
+
+Ref: users.provider_id > user_providers.id
+Ref: book_topics.book_id > books.id
+Ref: books.user_id > users.id
+Ref: book_topics.topic_id > topics.id
+Ref: picks.book_id > books.id
+Ref: pick_keywords.pick_id > picks.id
+Ref: pick_keywords.keyword_id > keywords.id

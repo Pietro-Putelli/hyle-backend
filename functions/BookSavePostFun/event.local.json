@@ -1,0 +1,4 @@
+{
+  "httpMethod": "POST",
+  "body": "{\"bookId\":\"3d7702fb-3345-4c26-9ca3-7e706133834c\"}"
+}

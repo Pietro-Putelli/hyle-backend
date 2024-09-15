@@ -1,0 +1,66 @@
+version: "3.0"
+
+dotenv: [.env]
+
+tasks:
+  local:
+    description: "SAM Local Invoke"
+    cmds:
+      - make build
+      - sam local invoke --env-vars .env.local.json {{.CLI_ARGS}}
+    # EXAMPLE: task local -- UpdateUserSessionFun
+
+  create-fn:
+    description: "Create New Lambda Function"
+    dir: functions/
+    cmds:
+      - mkdir {{.CLI_ARGS}} && cd {{.CLI_ARGS}} && touch main.go
+
+  makemigrations:
+    description: "Create New Migration File"
+    dir: migrations/
+    cmds:
+      - migrate create -ext sql -seq {{.CLI_ARGS}}
+
+  migrate:
+    desc: "Apply Migrations on Remote Database"
+    cmds:
+      - echo "Running migrations..."
+      - migrate -verbose -path migrations -database "postgresql://${DB_USER}:${DB_PASSWORD}@${DB_HOST}:${DB_PORT}/${DB_NAME}?sslmode=require" up
+      - echo "Migrations done"
+
+  local-invoke:
+    desc: "Invoke the function locally"
+    cmds:
+      - sam build {{.CLI_ARGS}}
+      - sam local invoke {{.CLI_ARGS}} --event functions/{{.CLI_ARGS}}/event.local.json --env-vars .env.local.json
+
+  start-api:
+    desc: "Start the API locally"
+    cmds:
+      - sam local start-api --env-vars .env.local.json
+  
+  start-db:
+    desc: "Start the local database"
+    cmds:
+      - psql 'postgresql://pantadb_owner:upKXzVmO7Ii4@ep-falling-cherry-a263m395-pooler.eu-central-1.aws.neon.tech/pantadb?sslmode=require'
+
+  # Setup Python
+
+  setup-requirements:
+    desc: "Setup requirements.txt file for each function"
+    cmds:
+      - for dir in ai_functions/*; do if [ -d "$dir" ]; then cp requirements.txt "$dir"; fi; done
+
+  setup-py-layer:
+    desc: "Setup the environment layer and install dependencies"
+    dir: ./layers/langchain
+    cmds:
+      - echo "Installing dependencies..."
+      - rm -rf python
+      - "pip3 install --platform manylinux2014_aarch64 -r ./requirements.txt -t ./python/lib/python3.9/site-packages --only-binary=:all:"
+      - echo "Dependencies installed."
+    sources:
+      - ./layers/langchain/requirements.txt
+    generates:
+      - ./layers/langchain/python

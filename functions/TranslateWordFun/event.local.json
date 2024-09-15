@@ -1,0 +1,7 @@
+{
+    "httpMethod": "GET",
+    "queryStringParameters": {
+        "word": "correre",
+        "lang": "es"
+    }
+}

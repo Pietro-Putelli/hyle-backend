@@ -1,0 +1,490 @@
+AWSTemplateFormatVersion: "2010-09-09"
+Transform: AWS::Serverless-2016-10-31
+Description: >
+  panta.srvless-api
+
+  SAM Application for Panta srvless-api service
+
+Globals:
+  Function:
+    Timeout: 80
+    MemorySize: 128
+    Runtime: provided.al2023
+    Environment:
+      Variables:
+        DB_NAME: "pantadb"
+        DB_USER: "pantadb_owner"
+        DB_PORT: 5432
+        DB_HOST: "ep-falling-cherry-a263m395-pooler.eu-central-1.aws.neon.tech"
+        DB_PASSWORD: "{{resolve:secretsmanager:prod/Goya:SecretString:DB_PASSWORD}}"
+        DB_SSL_MODE: "require"
+        JWT_SECRET: "{{resolve:secretsmanager:prod/Goya:SecretString:JWT_SECRET}}"
+        AUTH_GOOGLE_CLIENT_ID: "{{resolve:secretsmanager:prod/Goya:SecretString:AUTH_GOOGLE_CLIENT_ID}}"
+        APPLE_TEAM_ID: "{{resolve:secretsmanager:prod/Goya:SecretString:APPLE_TEAM_ID}}"
+        IOS_APP_BUNDLE_ID: "{{resolve:secretsmanager:prod/Goya:SecretString:IOS_APP_BUNDLE_ID}}"
+        APPSTORE_ISSUER_ID: "{{resolve:secretsmanager:prod/Goya:SecretString:APPSTORE_ISSUER_ID}}"
+
+        APPLE_SIGNIN_CERTIFICATE: "{{resolve:secretsmanager:prod/goya/apple-signin-certificate}}"
+        APPLE_SIGNIN_CERTIFICATE_KEY: "{{resolve:secretsmanager:prod/Goya:SecretString:APPLE_SIGNIN_CERTIFICATE_KEY}}"
+
+        APPLE_APNS_CERTIFICATE: "{{resolve:secretsmanager:prod/feynman/apple-apns-certificate}}"
+        APPLE_APNS_CERTIFICATE_KEY: "{{resolve:secretsmanager:prod/Goya:SecretString:APPLE_APNS_CERTIFICATE_KEY}}"
+
+        # APPLE_IAP_CERTIFICATE: "{{resolve:secretsmanager:prod/goya/apple-iap-certificate}}"
+        # APPLE_IAP_CERTIFICATE_KEY: "{{resolve:secretsmanager:prod/Goya:SecretString:APPLE_IAP_CERTIFICATE_KEY}}"
+
+        LANGCHAIN_API_KEY: "{{resolve:secretsmanager:prod/Goya:SecretString:LANGCHAIN_API_KEY}}"
+        OPENAI_API_KEY: "{{resolve:secretsmanager:prod/Goya:SecretString:OPENAI_API_KEY}}"
+
+        TELEGRAM_API_TOKEN: "{{resolve:secretsmanager:prod/Goya:SecretString:TELEGRAM_API_TOKEN}}"
+
+        GPT_MODEL: "{{resolve:ssm:/feynman/gpt-model:1}}"
+
+        IS_LOCAL_ENV: false
+
+Resources:
+  # Authorizer API
+
+  AuthorizerApi:
+    Type: AWS::Serverless::Api
+    Properties:
+      StageName: Dev
+      Auth:
+        DefaultAuthorizer: LambdaTokenAuthorizer
+        Authorizers:
+          LambdaTokenAuthorizer:
+            FunctionArn: !GetAtt CustomAuthorizerFun.Arn
+
+  CustomAuthorizerFun:
+    Type: AWS::Serverless::Function
+    Metadata:
+      BuildMethod: makefile
+    Properties:
+      CodeUri: .
+      Handler: bootstrap
+
+  # Auth Functions
+
+  AuthTokenPostFun:
+    Type: AWS::Serverless::Function
+    Metadata:
+      BuildMethod: makefile
+    Properties:
+      CodeUri: .
+      Handler: bootstrap
+      Policies:
+        - AWSSecretsManagerGetSecretValuePolicy:
+            SecretArn: arn:aws:secretsmanager:eu-central-1:767397893147:secret:prod/Goya-O6EkCV
+      Events:
+        AuthTokenPostResource:
+          Type: Api
+          Properties:
+            Path: /v1/auth/token
+            Method: POST
+            RestApiId: !Ref AuthorizerApi
+            Auth:
+              Authorizer: NONE
+
+  AuthRefreshPostFun:
+    Type: AWS::Serverless::Function
+    Metadata:
+      BuildMethod: makefile
+    Properties:
+      CodeUri: .
+      Handler: bootstrap
+      Policies:
+        - AWSSecretsManagerGetSecretValuePolicy:
+            SecretArn: arn:aws:secretsmanager:eu-central-1:767397893147:secret:prod/Goya-O6EkCV
+      Events:
+        AuthRefreskPostResource:
+          Type: Api
+          Properties:
+            Path: /v1/auth/refresh
+            Method: POST
+            RestApiId: !Ref AuthorizerApi
+            Auth:
+              Authorizer: NONE
+
+  # API Functions
+
+  UserSessionPatchFun:
+    Type: AWS::Serverless::Function
+    Metadata:
+      BuildMethod: makefile
+    Properties:
+      CodeUri: .
+      Handler: bootstrap
+      Events:
+        UserSessionPatchFunResource:
+          Type: Api
+          Properties:
+            Path: /v1/sessions
+            Method: PATCH
+            RestApiId: !Ref AuthorizerApi
+
+  UserLogoutDeleteFun:
+    Type: AWS::Serverless::Function
+    Metadata:
+      BuildMethod: makefile
+    Properties:
+      CodeUri: .
+      Handler: bootstrap
+      Events:
+        UserLogoutDeleteFunResource:
+          Type: Api
+          Properties:
+            Path: /v1/sessions
+            Method: DELETE
+            RestApiId: !Ref AuthorizerApi
+
+  UserProfilePutFun:
+    Type: AWS::Serverless::Function
+    Metadata:
+      BuildMethod: makefile
+    Properties:
+      CodeUri: .
+      Handler: bootstrap
+      Events:
+        UserProfilePutFunResource:
+          Type: Api
+          Properties:
+            Path: /v1/users/me
+            Method: PUT
+            RestApiId: !Ref AuthorizerApi
+
+  UserProfileHealthFun:
+    Type: AWS::Serverless::Function
+    Metadata:
+      BuildMethod: makefile
+    Properties:
+      CodeUri: .
+      Handler: bootstrap
+      Events:
+        UserProfileCheckFunResource:
+          Type: Api
+          Properties:
+            Path: /v1/users/me
+            Method: GET
+            RestApiId: !Ref AuthorizerApi
+
+  BookPickPostFun:
+    Type: AWS::Serverless::Function
+    Metadata:
+      BuildMethod: makefile
+    Properties:
+      CodeUri: .
+      Handler: bootstrap
+      Events:
+        BookPickPostResource:
+          Type: Api
+          Properties:
+            Path: /v1/books/picks
+            Method: POST
+            RestApiId: !Ref AuthorizerApi
+      Policies:
+        - Version: "2012-10-17"
+          Statement:
+            - Effect: "Allow"
+              Action:
+                - "sqs:SendMessage"
+                - "sqs:GetQueueUrl"
+              Resource: !GetAtt PickKeywordsSqsQueue.Arn
+
+  BookPutFun:
+    Type: AWS::Serverless::Function
+    Metadata:
+      BuildMethod: makefile
+    Properties:
+      CodeUri: .
+      Handler: bootstrap
+      Events:
+        BookPutResource:
+          Type: Api
+          Properties:
+            Path: /v1/books
+            Method: PUT
+            RestApiId: !Ref AuthorizerApi
+
+  BookPicksGetFun:
+    Type: AWS::Serverless::Function
+    Metadata:
+      BuildMethod: makefile
+    Properties:
+      CodeUri: .
+      Handler: bootstrap
+      Events:
+        BookPicksGetResource:
+          Type: Api
+          Properties:
+            Path: /v1/books/picks
+            Method: GET
+            RestApiId: !Ref AuthorizerApi
+
+  BookTopicsGetFun:
+    Type: AWS::Serverless::Function
+    Metadata:
+      BuildMethod: makefile
+    Properties:
+      CodeUri: .
+      Handler: bootstrap
+      Events:
+        BookTopicsGetResource:
+          Type: Api
+          Properties:
+            Path: /v1/books/topics
+            Method: GET
+            RestApiId: !Ref AuthorizerApi
+
+  BookDeleteFun:
+    Type: AWS::Serverless::Function
+    Metadata:
+      BuildMethod: makefile
+    Properties:
+      CodeUri: .
+      Handler: bootstrap
+      Events:
+        BookDeleteResource:
+          Type: Api
+          Properties:
+            Path: /v1/books/{bookId}
+            Method: DELETE
+            RestApiId: !Ref AuthorizerApi
+
+  BookPickDeleteFun:
+    Type: AWS::Serverless::Function
+    Metadata:
+      BuildMethod: makefile
+    Properties:
+      CodeUri: .
+      Handler: bootstrap
+      Events:
+        BookPickDeleteResource:
+          Type: Api
+          Properties:
+            Path: /v1/books/{bookId}/picks/{pickId}
+            Method: DELETE
+            RestApiId: !Ref AuthorizerApi
+
+  BookGetFun:
+    Type: AWS::Serverless::Function
+    Metadata:
+      BuildMethod: makefile
+    Properties:
+      CodeUri: .
+      Handler: bootstrap
+      Events:
+        BookGetFunResource:
+          Type: Api
+          Properties:
+            Path: /v1/books/{bookId}
+            Method: GET
+            RestApiId: !Ref AuthorizerApi
+
+  BookListFun:
+    Type: AWS::Serverless::Function
+    Metadata:
+      BuildMethod: makefile
+    Properties:
+      CodeUri: .
+      Handler: bootstrap
+      Events:
+        BookListFunResource:
+          Type: Api
+          Properties:
+            Path: /v1/books
+            Method: GET
+            RestApiId: !Ref AuthorizerApi
+
+  BookPickPutFun:
+    Type: AWS::Serverless::Function
+    Metadata:
+      BuildMethod: makefile
+    Properties:
+      CodeUri: .
+      Handler: bootstrap
+      Events:
+        BookPickPutResource:
+          Type: Api
+          Properties:
+            Path: /v1/books/picks
+            Method: PUT
+            RestApiId: !Ref AuthorizerApi
+      Policies:
+        - Version: "2012-10-17"
+          Statement:
+            - Effect: "Allow"
+              Action:
+                - "sqs:SendMessage"
+                - "sqs:GetQueueUrl"
+              Resource: !GetAtt PickKeywordsSqsQueue.Arn
+
+  SemanticSearchFun:
+    Type: AWS::Serverless::Function
+    Metadata:
+      BuildMethod: makefile
+    Properties:
+      CodeUri: .
+      Handler: bootstrap
+      Events:
+        SemanticSearchResource:
+          Type: Api
+          Properties:
+            Path: /v1/search
+            Method: GET
+            RestApiId: !Ref AuthorizerApi
+
+  BookSavePostFun:
+    Type: AWS::Serverless::Function
+    Metadata:
+      BuildMethod: makefile
+    Properties:
+      CodeUri: .
+      Handler: bootstrap
+      Events:
+        BookSavePostResource:
+          Type: Api
+          Properties:
+            Path: /v1/books/save
+            Method: POST
+            RestApiId: !Ref AuthorizerApi
+
+  ## AI API functions
+
+  SharpPickFun:
+    Type: AWS::Serverless::Function
+    Metadata:
+      BuildMethod: makefile
+    Properties:
+      CodeUri: .
+      Handler: bootstrap
+      Events:
+        SharpPickFunResource:
+          Type: Api
+          Properties:
+            Path: /v1/ai/sharp
+            Method: GET
+            RestApiId: !Ref AuthorizerApi
+
+  KeywordDetailFun:
+    Type: AWS::Serverless::Function
+    Metadata:
+      BuildMethod: makefile
+    Properties:
+      CodeUri: .
+      Handler: bootstrap
+      Events:
+        KeywordDetailFunResource:
+          Type: Api
+          Properties:
+            Path: /v1/ai/keyword
+            Method: GET
+            RestApiId: !Ref AuthorizerApi
+
+  TranslateWordFun:
+    Type: AWS::Serverless::Function
+    Metadata:
+      BuildMethod: makefile
+    Properties:
+      CodeUri: .
+      Handler: bootstrap
+      Events:
+        TranslateWordFunResource:
+          Type: Api
+          Properties:
+            Path: /v1/ai/translate
+            Method: GET
+            RestApiId: !Ref AuthorizerApi
+
+  ## SQS Setup For Keyword Pick
+
+  PickKeywordsSqsQueue:
+    Type: AWS::SQS::Queue
+    Properties:
+      QueueName: "pick-keywords"
+      VisibilityTimeout: 800
+      ReceiveMessageWaitTimeSeconds: 10
+      DelaySeconds: 10
+
+  CreatePickKeywordsFun:
+    Type: AWS::Serverless::Function
+    Metadata:
+      BuildMethod: makefile
+    Properties:
+      CodeUri: .
+      Handler: bootstrap
+      Events:
+        CreatePickKeywordsFunEvent:
+          Type: SQS
+          Properties:
+            Queue: !GetAtt PickKeywordsSqsQueue.Arn
+            BatchSize: 1
+
+  ## EventBridge, SNS And Push Notification
+
+  PushNotificationEventBridgeRule:
+    Type: AWS::Events::Rule
+    Properties:
+      Description: "Rule for Push Notification"
+      EventPattern:
+        detail-type:
+          - "push-notification"
+      State: ENABLED
+      ScheduleExpression: cron(0 13 * * ? *)
+      Targets:
+        - Arn: !GetAtt EligibleUsersForPNFun.Arn
+          Id: "EligibleUsersForPNFun"
+
+  EligibleUsersForPNFun:
+    Type: AWS::Serverless::Function
+    Metadata:
+      BuildMethod: makefile
+    Properties:
+      CodeUri: .
+      Handler: bootstrap
+    Policies:
+      - Version: "2012-10-17"
+        Statement:
+          - Effect: "Allow"
+            Action:
+              - sns:ListTopics
+            Resource: "*"
+
+  SendPushNotificationFun:
+    Type: AWS::Serverless::Function
+    Metadata:
+      BuildMethod: makefile
+    Properties:
+      CodeUri: .
+      Handler: bootstrap
+
+  SNSPushNotificationTopic:
+    Type: AWS::SNS::Topic
+    Properties:
+      TopicName: "push-notification-topic"
+      DisplayName: "Push Notification Topic"
+
+  PermissionForEventsToInvokeLambda:
+    Type: AWS::Lambda::Permission
+    Properties:
+      FunctionName: !GetAtt EligibleUsersForPNFun.Arn
+      Action: "lambda:InvokeFunction"
+      Principal: "events.amazonaws.com"
+
+  PermissionForSNSToInvokeLambda:
+    Type: AWS::Lambda::Permission
+    Properties:
+      FunctionName: !GetAtt SendPushNotificationFun.Arn
+      Action: "lambda:InvokeFunction"
+      Principal: "sns.amazonaws.com"
+
+  SNSPushNotificationSubscription:
+    Type: AWS::SNS::Subscription
+    Properties:
+      TopicArn: !Ref SNSPushNotificationTopic
+      Protocol: lambda
+      Endpoint: !GetAtt SendPushNotificationFun.Arn
+
+Outputs:
+  CreatePickKeywordsFun:
+    Description: "ARN of CreatePickKeywordsFun Lambda Function"
+    Value: !GetAtt CreatePickKeywordsFun.Arn

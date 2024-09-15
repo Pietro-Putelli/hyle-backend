@@ -1,0 +1,4 @@
+{
+  "httpMethod": "PUT",
+  "body": "{\n    \"bookId\": \"83c8f0a7-7357-4329-9c24-62f74d70c031\",\n    \"pickId\": \"e551d67e-c87c-4fbe-9451-119bc002854e\",\n    \"title\": \"\", \"text\": \"prova\"\n}"
+}

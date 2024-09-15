@@ -1,0 +1,6 @@
+{
+  "httpMethod": "GET",
+  "queryStringParameters": {
+    "text": "Coco Chanel was a French fashion designer and businesswoman."
+  }
+}

@@ -1,0 +1,4 @@
+{
+  "httpMethod": "POST",
+  "body": "{\n    \"title\": \"History of China\",\n    \"pick\": {\n      \"content\": \"{}\",\n      \"contentText\": \"Social Group Theory, developed by American scientist Marvin Harris, posits that social structures and cultural practices are primarily shaped by material conditions and economic factors. Harris, a cultural materialist, argued that environmental and resource challenges drive the formation of social norms and institutions. This theory emphasizes empirical data and scientific methods to understand the link between society and its material base.\"\n    }\n  }"
+}

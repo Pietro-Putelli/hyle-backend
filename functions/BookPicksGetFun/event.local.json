@@ -1,0 +1,10 @@
+{
+  "httpMethod": "GET",
+  "queryStringParameters": {
+    "offset": "3",
+    "limit": "9",
+    "bookId": "f7731c2a-c234-4136-9c3b-0abec2b92b0f",
+    "orderBy": "desc",
+    "untilPickId": "066128d4-ee78-4af4-8312-21014198e160"
+  }
+}

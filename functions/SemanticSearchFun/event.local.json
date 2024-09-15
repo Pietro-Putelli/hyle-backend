@@ -1,0 +1,8 @@
+{
+  "httpMethod": "GET",
+  "queryStringParameters": {
+    "query": "rubber",
+    "limit": "9",
+    "bookId": "0bb12e15-7a19-450d-b791-8f2f4a9d6a52"
+  }
+}

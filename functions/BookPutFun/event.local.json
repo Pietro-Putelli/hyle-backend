@@ -1,0 +1,4 @@
+{
+  "httpMethod": "PUT",
+  "body": "{\n    \"bookId\": \"0386b631-b8c5-4cf5-b1ba-e4ae67b34ef9\",\n    \"topics\": [\n      {\n        \"topic\": \"sociology\",\n        \"color\": \"#007000\"\n      },\n      {\n        \"topic\": \"anthropology\",\n        \"color\": \"#4B0082\"\n      },\n      {\n        \"topic\": \"fashion design\",\n        \"color\": \"#FFA500\"\n      }\n    ]\n  }"
+}

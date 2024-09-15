@@ -1,0 +1,7 @@
+{
+  "httpMethod": "DELETE",
+  "pathParameters": {
+    "bookId": "21adf458-e27b-41ce-a9ad-fbae5d18fec4",
+    "pickId": "6bcd677a-6ea8-405a-a2ff-5bcbd6fe6417"
+  }
+}

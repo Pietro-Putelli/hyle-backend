@@ -1,0 +1,12 @@
+{
+  "Records": [
+    {
+      "EventSource": "aws:sns",
+      "EventVersion": "1.0",
+      "SNS": {
+        "Type": "Notification",
+        "Message": "{\n          \"guid\": \"1b753ccb-183b-4c39-9eb1-d7f8c9597db3\",\n          \"user_id\": 1,\n          \"device_token\": \"5c8e82bded2c50cdae0f1e19c3a38a25550b623ae3370554eb7ee56280bbbcb4\",\n          \"settings\": {\n            \"darkMode\": true,\n            \"appLanguage\": \"en\",\n            \"secondLanguage\": \"en\",\n            \"notificationMode\": \"all\",\n            \"notificationEnabled\": false\n          }\n        }"
+      }
+    }
+  ]
+}
