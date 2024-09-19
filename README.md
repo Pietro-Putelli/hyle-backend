@@ -2,7 +2,7 @@
 
 ### Backend
 
-<img width="1064" alt="Screenshot 2024-09-13 at 09 00 01" src="https://github.com/user-attachments/assets/4d9e138e-5893-47e1-9542-fd1b709b88cb">
+<img width="965" alt="Screenshot 2024-09-19 at 09 50 04" src="https://github.com/user-attachments/assets/6805bb36-4fab-430e-83ba-25bcf694bbf1">
 
 
 #### Push Notifications
