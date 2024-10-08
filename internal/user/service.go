@@ -21,6 +21,7 @@ type Service interface {
 	CreateUserIfNotExists(user *domain.ThirdPartyUser) (*domain.User, uuid.UUID, error)
 	UpdateUserProfile(userID uuid.UUID, data *domain.UserProfileUpdate) error
 	CheckProfileHealth(userID uuid.UUID) (*domain.UserHealth, error)
+	DeleteUserProfile(userID uuid.UUID) error
 }
 
 // serviceImpl represents the user service implementation.
@@ -226,4 +227,18 @@ func (s *serviceImpl) CheckProfileHealth(userID uuid.UUID) (*domain.UserHealth, 
 	// }
 
 	return response, nil
+}
+
+/* DeleteUserProfile deletes the user profile and all related data */
+func (service *serviceImpl) DeleteUserProfile(userID uuid.UUID) error {
+	logger, _ := zap.NewProduction()
+	defer logger.Sync()
+
+	err := service.db.Table("users").Where("guid = ?", userID).Delete(&domain.User{}).Error
+
+	if err != nil {
+		logger.Error("Failed to delete user profile", zap.Error(err))
+	}
+
+	return err
 }

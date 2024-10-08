@@ -152,6 +152,21 @@ Resources:
             Method: PUT
             RestApiId: !Ref AuthorizerApi
 
+  UserProfileDeleteFun:
+    Type: AWS::Serverless::Function
+    Metadata:
+      BuildMethod: makefile
+    Properties:
+      CodeUri: .
+      Handler: bootstrap
+      Events:
+        UserProfileDeleteFunResource:
+          Type: Api
+          Properties:
+            Path: /v1/users/me
+            Method: DELETE
+            RestApiId: !Ref AuthorizerApi
+
   UserProfileHealthFun:
     Type: AWS::Serverless::Function
     Metadata:

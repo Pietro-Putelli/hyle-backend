@@ -109,6 +109,10 @@ build-SendPushNotificationFun: ## Build SendPushNotificationFun
 	@GOOS=linux GOARCH=amd64 go build -o functions/SendPushNotificationFun/bootstrap functions/SendPushNotificationFun/main.go
 	cp functions/SendPushNotificationFun/bootstrap $(ARTIFACTS_DIR)/.
 
+build-UserProfileDeleteFun: ## Build UserProfileDeleteFun
+	@GOOS=linux GOARCH=amd64 go build -o functions/UserProfileDeleteFun/bootstrap functions/UserProfileDeleteFun/main.go
+	cp functions/UserProfileDeleteFun/bootstrap $(ARTIFACTS_DIR)/.
+
 build: ## Build all functions
 	sam build
 .PHONY: build
